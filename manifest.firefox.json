@@ -7,7 +7,9 @@
   "author": "Nischal Dahal",
   "homepage_url": "https://github.com/broisnischal/switch-tab",
   "background": {
-    "service_worker": "src/background/index.js",
+    "scripts": [
+      "src/background/index.js"
+    ],
     "type": "module"
   },
   "permissions": [
@@ -16,11 +18,18 @@
     "scripting",
     "background"
   ],
-  "host_permissions": ["http://*/*", "https://*/*"],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["src/background/hot-reload-client.js"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/background/hot-reload-client.js"
+      ]
     },
     {
       "js": [
@@ -47,4 +56,3 @@
     }
   }
 }
- 
