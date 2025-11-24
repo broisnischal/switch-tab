@@ -38,6 +38,9 @@
     "build": "npm-run-all generate-manifests clean start copy-assets",
     "build:firefox": "npm-run-all generate-manifests clean start copy-assets:firefox",
     "build:all": "npm-run-all generate-manifests clean start copy-assets copy-assets:firefox",
+    "zip": "node scripts/zip-builds.js",
+    "zip:chrome": "node scripts/zip-builds.js --chrome",
+    "zip:firefox": "node scripts/zip-builds.js --firefox",
     "changeset": "changeset",
     "publish": "changeset publish",
     "version": "changeset version",
@@ -62,6 +65,7 @@
     "gulp": "^5.0.0",
     "gulp-zip": "^5.0.2",
     "typescript": "^5.7.2",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "archiver": "^7.0.1"
   }
 }
