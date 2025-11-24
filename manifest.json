@@ -14,13 +14,25 @@
     "tabs",
     "activeTab",
     "scripting",
-    "background"
+    "background",
+    "storage",
+    "sessions"
   ],
-  "host_permissions": ["http://*/*", "https://*/*"],
+  "action": {
+    "default_title": "Switch Tab"
+  },
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["src/background/hot-reload-client.js"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/background/hot-reload-client.js"
+      ]
     },
     {
       "js": [
@@ -47,4 +59,3 @@
     }
   }
 }
- 

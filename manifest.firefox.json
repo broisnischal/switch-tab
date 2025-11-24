@@ -16,8 +16,13 @@
     "tabs",
     "activeTab",
     "scripting",
-    "background"
+    "background",
+    "storage",
+    "sessions"
   ],
+  "action": {
+    "default_title": "Switch Tab"
+  },
   "host_permissions": [
     "http://*/*",
     "https://*/*"
