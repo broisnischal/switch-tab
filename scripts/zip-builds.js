@@ -24,11 +24,10 @@ async function createZip(sourceDir, outputPath) {
 
   try {
     // Try using zip command (available on macOS/Linux)
-    const sourceParent = path.dirname(sourceDir);
-    const sourceName = path.basename(sourceDir);
-    
-    process.chdir(sourceParent);
-    execSync(`zip -r "${outputPath}" "${sourceName}" -x "*.DS_Store" -x "__MACOSX/*"`, {
+    // Zip the contents of the directory, not the directory itself
+    // Change to source directory and zip all contents to the output path (use absolute path)
+    process.chdir(sourceDir);
+    execSync(`zip -r "${outputPath}" . -x "*.DS_Store" -x "__MACOSX/*"`, {
       stdio: 'inherit'
     });
     
@@ -53,7 +52,11 @@ async function createZip(sourceDir, outputPath) {
 
         archive.on('error', reject);
         archive.pipe(output);
-        archive.directory(sourceDir, false);
+        // Use glob to include all files from the directory root (not the directory itself)
+        archive.glob('**/*', {
+          cwd: sourceDir,
+          ignore: ['**/.DS_Store', '**/__MACOSX/**']
+        });
         archive.finalize();
       });
     } catch (archiverError) {

@@ -22,6 +22,19 @@ if (firefoxManifest.background && firefoxManifest.background.service_worker) {
   };
 }
 
+// Add Firefox-specific settings including extension ID
+// Firefox requires a unique ID for Manifest V3 extensions
+// Also declare data collection permissions (none = no data transmitted externally)
+firefoxManifest.browser_specific_settings = {
+  gecko: {
+    id: "{ec76fb4a-dc10-43a1-a438-96ceefcdf093}",
+    strict_min_version: "109.0",
+    data_collection_permissions: {
+      required: ["none"]
+    }
+  }
+};
+
 // Write Firefox manifest to root (for reference)
 const firefoxManifestPath = path.join(rootDir, 'manifest.firefox.json');
 fs.writeFileSync(
