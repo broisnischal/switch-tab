@@ -93,5 +93,37 @@ if (fs.existsSync(manifestFirefoxPath)) {
   console.log('✅ Copied manifest to dist-firefox/manifest.json');
 }
 
+// Copy assets folder to dist-firefox
+const assetsDir = path.join(rootDir, 'assets');
+const distFirefoxAssetsDir = path.join(distFirefoxDir, 'assets');
+if (fs.existsSync(assetsDir)) {
+  const copyAssetsFolder = (src, dest) => {
+    const exists = fs.existsSync(src);
+    const stats = exists && fs.statSync(src);
+    const isDirectory = exists && stats.isDirectory();
+    
+    if (isDirectory) {
+      if (!fs.existsSync(dest)) {
+        fs.mkdirSync(dest, { recursive: true });
+      }
+      fs.readdirSync(src).forEach(childItemName => {
+        copyAssetsFolder(
+          path.join(src, childItemName),
+          path.join(dest, childItemName)
+        );
+      });
+    } else {
+      const destDir = path.dirname(dest);
+      if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true });
+      }
+      fs.copyFileSync(src, dest);
+    }
+  };
+  
+  copyAssetsFolder(assetsDir, distFirefoxAssetsDir);
+  console.log('✅ Copied assets folder to dist-firefox/assets');
+}
+
 console.log('✅ Firefox assets copied successfully');
 
