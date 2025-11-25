@@ -21,6 +21,7 @@
   "action": {
     "default_title": "Switch Tab"
   },
+  "options_page": "src/options/options.html",
   "icons": {
     "16": "assets/icons/icon16.png",
     "32": "assets/icons/icon32.png",
@@ -58,8 +59,8 @@
   "commands": {
     "open-tab-switcher": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Z",
-        "mac": "Command+Shift+Z"
+        "default": "Ctrl+Shift+D",
+        "mac": "Command+Shift+D"
       },
       "description": "Open tab switcher UI"
     }
