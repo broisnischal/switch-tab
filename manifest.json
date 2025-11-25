@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/chrome-manifest",
   "manifest_version": 3,
   "name": "Switch Tab",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Switch Tab is a chrome extension that allows you to switch between tabs quickly and easily.",
   "author": "Nischal Dahal",
   "homepage_url": "https://github.com/broisnischal/switch-tab",
