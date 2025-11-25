@@ -1,8 +1,32 @@
 // Options page for customizing keyboard shortcuts
 
-// Extend Chrome commands API to include update method
-interface ChromeCommands extends chrome.commands.Command {
-  update?: (detail: { name: string; shortcut?: string }) => Promise<void>;
+// Detect if we're running in Firefox
+function isFirefox(): boolean {
+  // Check for Firefox-specific APIs
+  if (typeof (window as any).browser !== "undefined" && (window as any).browser.runtime) {
+    return true;
+  }
+  // Check user agent
+  if (navigator.userAgent.toLowerCase().indexOf("firefox") > -1) {
+    return true;
+  }
+  // Check if chrome.runtime.getBrowserInfo exists (Firefox-specific)
+  try {
+    if (typeof chrome !== "undefined" && chrome.runtime && typeof (chrome.runtime as any).getBrowserInfo === "function") {
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+// Check if browser supports chrome.commands.update
+async function supportsCommandsUpdate(): Promise<boolean> {
+  try {
+    const commandsAPI = chrome.commands as any;
+    return typeof commandsAPI.update === "function";
+  } catch {
+    return false;
+  }
 }
 
 // Format shortcut for display (e.g., "Ctrl+Shift+D" -> "Ctrl + Shift + D")
@@ -176,6 +200,16 @@ function handleKeyUp(event: KeyboardEvent) {
 // Save shortcut using chrome.commands.update
 async function saveShortcut(shortcut: string) {
   try {
+    // Check if update is supported
+    const supportsUpdate = await supportsCommandsUpdate();
+    if (!supportsUpdate) {
+      showStatus(
+        "Firefox doesn't support programmatic shortcut updates. Please use the 'Manage Extension Shortcuts' button below.",
+        "error"
+      );
+      return;
+    }
+
     // Parse the shortcut
     const parts = shortcut.split("+").map((p) => p.trim());
     const modifiers: string[] = [];
@@ -218,11 +252,10 @@ async function saveShortcut(shortcut: string) {
         name: "open-tab-switcher",
         shortcut: shortcutString,
       });
+      showStatus("Shortcut updated successfully! Try it out.", "success");
     } else {
       throw new Error("chrome.commands.update is not available in this browser");
     }
-
-    showStatus("Shortcut updated successfully! Try it out.", "success");
   } catch (error: any) {
     console.error("Error saving shortcut:", error);
     const errorMsg = error.message || "Failed to update shortcut";
@@ -242,6 +275,16 @@ async function saveShortcut(shortcut: string) {
 // Reset shortcut to default
 async function resetShortcut() {
   try {
+    // Check if update is supported
+    const supportsUpdate = await supportsCommandsUpdate();
+    if (!supportsUpdate) {
+      showStatus(
+        "Firefox doesn't support programmatic shortcut updates. Please use the 'Manage Extension Shortcuts' button below.",
+        "error"
+      );
+      return;
+    }
+
     const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
     const defaultShortcut = isMac ? "MacCtrl+Shift+D" : "Ctrl+Shift+D";
 
@@ -252,12 +295,11 @@ async function resetShortcut() {
         name: "open-tab-switcher",
         shortcut: defaultShortcut,
       });
+      showStatus("Shortcut reset to default", "success");
+      updateShortcutDisplay();
     } else {
       throw new Error("chrome.commands.update is not available in this browser");
     }
-
-    showStatus("Shortcut reset to default", "success");
-    updateShortcutDisplay();
   } catch (error: any) {
     console.error("Error resetting shortcut:", error);
     showStatus(
@@ -283,48 +325,103 @@ function showStatus(message: string, type: "success" | "error" | "info" = "info"
   }
 }
 
-// Open Chrome shortcuts page
-function openChromeShortcuts() {
-  chrome.tabs.create({
-    url: "chrome://extensions/shortcuts",
-  });
+// Open browser shortcuts page
+function openBrowserShortcuts() {
+  const firefox = isFirefox();
+  const url = firefox 
+    ? "about:addons" 
+    : "chrome://extensions/shortcuts";
+  
+  chrome.tabs.create({ url });
+  
+  if (firefox) {
+    showStatus(
+      "In Firefox: Click the gear icon → 'Manage Extension Shortcuts' to customize shortcuts.",
+      "info"
+    );
+  }
 }
 
 // Initialize
 document.addEventListener("DOMContentLoaded", async () => {
+  const firefox = isFirefox();
+  const supportsUpdate = await supportsCommandsUpdate();
+
   // Update shortcut display
   await updateShortcutDisplay();
 
   // Record shortcut button
-  const recordBtn = document.getElementById("record-shortcut-btn");
+  const recordBtn = document.getElementById("record-shortcut-btn") as HTMLButtonElement;
   if (recordBtn) {
-    recordBtn.addEventListener("click", () => {
-      startRecording();
-    });
+    if (!supportsUpdate) {
+      recordBtn.disabled = true;
+      recordBtn.title = "Not available in Firefox. Use 'Manage Extension Shortcuts' instead.";
+    } else {
+      recordBtn.addEventListener("click", () => {
+        startRecording();
+      });
+    }
   }
 
   // Reset shortcut button
-  const resetBtn = document.getElementById("reset-shortcut-btn");
+  const resetBtn = document.getElementById("reset-shortcut-btn") as HTMLButtonElement;
   if (resetBtn) {
-    resetBtn.addEventListener("click", () => {
-      resetShortcut();
-    });
+    if (!supportsUpdate) {
+      resetBtn.disabled = true;
+      resetBtn.title = "Not available in Firefox. Use 'Manage Extension Shortcuts' instead.";
+    } else {
+      resetBtn.addEventListener("click", () => {
+        resetShortcut();
+      });
+    }
   }
 
-  // Chrome shortcuts link
+  // Browser shortcuts link
   const shortcutsLink = document.getElementById("chrome-shortcuts-link");
   if (shortcutsLink) {
+    shortcutsLink.textContent = firefox 
+      ? "Open Firefox Extension Shortcuts" 
+      : "Open Extension Shortcuts";
     shortcutsLink.addEventListener("click", (e) => {
       e.preventDefault();
-      openChromeShortcuts();
+      openBrowserShortcuts();
     });
   }
 
-  // Keyboard event listeners for recording
-  window.addEventListener("keydown", handleKeyDown);
-  window.addEventListener("keyup", handleKeyUp);
+  // Show Firefox-specific message
+  if (firefox) {
+    const infoSection = document.querySelector(".settings-section > div:last-child");
+    if (infoSection) {
+      const firefoxInfo = document.createElement("div");
+      firefoxInfo.style.cssText = `
+        font-size: 14px; 
+        color: #666666; 
+        margin-top: 12px; 
+        padding: 12px; 
+        background: #f5f5f5; 
+        border-radius: 6px; 
+        border-left: 3px solid #0066cc;
+      `;
+      firefoxInfo.innerHTML = "🔥 <strong>Firefox Note:</strong> Firefox doesn't support programmatic shortcut updates. Please use the 'Manage Extension Shortcuts' button above to customize your keyboard shortcuts.";
+      
+      // Dark mode support
+      if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        firefoxInfo.style.background = "#2e2e2e";
+        firefoxInfo.style.color = "#999999";
+        firefoxInfo.style.borderLeftColor = "#66b3ff";
+      }
+      
+      if (infoSection.parentElement) {
+        infoSection.parentElement.insertBefore(firefoxInfo, infoSection);
+      }
+    }
+  }
 
-  // Focus on window to capture keyboard events
-  window.focus();
+  // Keyboard event listeners for recording (only if supported)
+  if (supportsUpdate) {
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.focus();
+  }
 });
 

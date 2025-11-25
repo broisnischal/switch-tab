@@ -1,5 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/chrome-manifest",
   "manifest_version": 3,
   "name": "Switch Tab",
   "version": "0.0.1",
@@ -16,7 +15,6 @@
     "tabs",
     "activeTab",
     "scripting",
-    "background",
     "storage",
     "sessions"
   ],
@@ -61,8 +59,8 @@
   "commands": {
     "open-tab-switcher": {
       "suggested_key": {
-        "default": "Ctrl+Shift+D",
-        "mac": "Command+Shift+D"
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
       },
       "description": "Open tab switcher UI"
     }

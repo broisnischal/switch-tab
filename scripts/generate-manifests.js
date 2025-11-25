@@ -14,12 +14,22 @@ const chromeManifest = JSON.parse(
 // Create Firefox manifest (Firefox MV3 uses "scripts" instead of "service_worker")
 const firefoxManifest = JSON.parse(JSON.stringify(chromeManifest)); // Deep clone
 
+// Remove $schema (Firefox doesn't expect this property)
+delete firefoxManifest.$schema;
+
 // Firefox MV3 uses "scripts" array instead of "service_worker"
 if (firefoxManifest.background && firefoxManifest.background.service_worker) {
   firefoxManifest.background = {
     scripts: [firefoxManifest.background.service_worker],
     type: firefoxManifest.background.type || 'module'
   };
+}
+
+// Remove "background" from permissions (it's not a valid permission in Firefox)
+if (firefoxManifest.permissions && Array.isArray(firefoxManifest.permissions)) {
+  firefoxManifest.permissions = firefoxManifest.permissions.filter(
+    (perm) => perm !== 'background'
+  );
 }
 
 // Add Firefox-specific settings including extension ID

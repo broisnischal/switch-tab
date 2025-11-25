@@ -59,8 +59,8 @@
   "commands": {
     "open-tab-switcher": {
       "suggested_key": {
-        "default": "Ctrl+Shift+D",
-        "mac": "Command+Shift+D"
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
       },
       "description": "Open tab switcher UI"
     }
