@@ -123,7 +123,7 @@ function renderPalette() {
     <div id="tab-box">
       <div id="tab-input-wrapper">
         ${tabIconSvg}
-        <input id="tab-input" type="text" placeholder="Search tabs..." />
+        <input id="tab-input" type="text" placeholder="Search tabs..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
       </div>
       <ul id="tab-results"></ul>
     </div>
@@ -132,6 +132,10 @@ function renderPalette() {
   document.body.appendChild(palette);
 
   const input = document.getElementById("tab-input") as HTMLInputElement;
+  // Additional attributes to prevent browser suggestions
+  input.setAttribute("autocomplete", "off");
+  input.setAttribute("data-form-type", "other");
+  input.setAttribute("name", "tab-search-input");
   input.addEventListener("input", handleSearch);
 
   // Keyboard navigation

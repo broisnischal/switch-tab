@@ -23,7 +23,14 @@ function isFirefox(): boolean {
 async function supportsCommandsUpdate(): Promise<boolean> {
   try {
     const commandsAPI = chrome.commands as any;
-    return typeof commandsAPI.update === "function";
+    // Check if update method exists
+    if (typeof commandsAPI.update !== "function") {
+      return false;
+    }
+    // Note: chrome.commands.update is not a standard Chrome API
+    // It may exist in some contexts but not actually work
+    // We'll return true here and handle errors gracefully in the actual calls
+    return true;
   } catch {
     return false;
   }
@@ -248,11 +255,20 @@ async function saveShortcut(shortcut: string) {
     // Update the command (using type assertion since update might not be in types)
     const commandsAPI = chrome.commands as any;
     if (commandsAPI.update) {
-      await commandsAPI.update({
-        name: "open-tab-switcher",
-        shortcut: shortcutString,
-      });
-      showStatus("Shortcut updated successfully! Try it out.", "success");
+      try {
+        await commandsAPI.update({
+          name: "open-tab-switcher",
+          shortcut: shortcutString,
+        });
+        showStatus("Shortcut updated successfully! Try it out.", "success");
+      } catch (updateError: any) {
+        // If update fails, it's likely not supported - direct user to browser settings
+        console.error("chrome.commands.update failed:", updateError);
+        showStatus(
+          "Programmatic shortcut updates aren't supported. Please use the 'Manage Extension Shortcuts' button below to set your shortcut.",
+          "error"
+        );
+      }
     } else {
       throw new Error("chrome.commands.update is not available in this browser");
     }
@@ -266,8 +282,16 @@ async function saveShortcut(shortcut: string) {
         "This shortcut conflicts with a browser shortcut. Please choose another.",
         "error"
       );
+    } else if (errorMsg.includes("not available")) {
+      showStatus(
+        "Programmatic shortcut updates aren't supported in this browser. Please use the 'Manage Extension Shortcuts' button below.",
+        "error"
+      );
     } else {
-      showStatus(`Error: ${errorMsg}`, "error");
+      showStatus(
+        "Unable to update shortcut programmatically. Please use the 'Manage Extension Shortcuts' button below.",
+        "error"
+      );
     }
   }
 }
@@ -291,21 +315,38 @@ async function resetShortcut() {
     // Update the command (using type assertion since update might not be in types)
     const commandsAPI = chrome.commands as any;
     if (commandsAPI.update) {
-      await commandsAPI.update({
-        name: "open-tab-switcher",
-        shortcut: defaultShortcut,
-      });
-      showStatus("Shortcut reset to default", "success");
-      updateShortcutDisplay();
+      try {
+        await commandsAPI.update({
+          name: "open-tab-switcher",
+          shortcut: defaultShortcut,
+        });
+        showStatus("Shortcut reset to default", "success");
+        updateShortcutDisplay();
+      } catch (updateError: any) {
+        // If update fails, it's likely not supported - direct user to browser settings
+        console.error("chrome.commands.update failed:", updateError);
+        showStatus(
+          "Programmatic shortcut updates aren't supported. Please use the 'Manage Extension Shortcuts' button below to reset your shortcut.",
+          "error"
+        );
+      }
     } else {
       throw new Error("chrome.commands.update is not available in this browser");
     }
   } catch (error: any) {
     console.error("Error resetting shortcut:", error);
-    showStatus(
-      `Error: ${error.message || "Failed to reset shortcut"}`,
-      "error"
-    );
+    const errorMsg = error.message || "Failed to reset shortcut";
+    if (errorMsg.includes("not available")) {
+      showStatus(
+        "Programmatic shortcut updates aren't supported in this browser. Please use the 'Manage Extension Shortcuts' button below.",
+        "error"
+      );
+    } else {
+      showStatus(
+        "Unable to reset shortcut programmatically. Please use the 'Manage Extension Shortcuts' button below.",
+        "error"
+      );
+    }
   }
 }
 
